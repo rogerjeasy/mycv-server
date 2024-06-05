@@ -66,15 +66,11 @@ jobs:
 
       - name: Copy project files to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem -r * ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem -r server.js ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
 
       - name: Copy package-lock.json to EC2
         run: |
           scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem package-lock.json ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
-
-      - name: Copy server.js to EC2
-        run: |
-          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem server.js ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
 
       - name: Copy package.json to EC2
         run: |
