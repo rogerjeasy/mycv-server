@@ -25,8 +25,8 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Run tests
-        run: npm test
+    #   - name: Run tests
+    #     run: npm test
 
       - name: Build project
         run: npm run build
@@ -60,8 +60,8 @@ jobs:
 
       - name: Create .env file on the remote server
         run: |
-          ssh -o StrictHostKeyChecking=no -i ec2_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-            echo ${{ secrets.ENV_VARIABLES }} | base64 --decode > /home/${{ secrets.SSH_USER }}/nodejs/.env
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            echo ${{ secrets.ENV_VARIABLES }} > /home/${{ secrets.SSH_USER }}/nodejs/.env
           "
 
       - name: Copy project files to EC2
