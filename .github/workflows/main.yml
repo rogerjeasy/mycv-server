@@ -65,7 +65,7 @@ jobs:
       - name: Create .env file on the remote server
         run: |
           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-          echo ${{ secrets.ENV_VARIABLES_STRING }} | base64 -decode > /home/${{ secrets.SSH_USER }}/nodejs/.env
+          echo ${{ secrets.ENV_VARIABLE_N }} > /home/${{ secrets.SSH_USER }}/nodejs/.env
           "
 
       - name: Copy project files to EC2
