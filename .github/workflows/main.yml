@@ -28,8 +28,8 @@ jobs:
     #   - name: Run tests
     #     run: npm test
 
-      - name: Build project
-        run: npm run build
+    #   - name: Build project
+    #     run: npm run build
 
   deploy:
     name: Deploy to AWS EC2
@@ -78,7 +78,7 @@ jobs:
 
       - name: Copy startup_nodejs.sh to EC2
         run: |
-          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./startup.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./startup_nodejs.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
           ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "chmod +x /home/${{ secrets.SSH_USER }}/nodejs/startup_nodejs.sh"
 
       - name: Deploy to EC2 instance
