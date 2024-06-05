@@ -17,6 +17,10 @@ const openai = new OpenAI({
 app.use(cors());
 app.use(express.json());
 
+app.get('/', (req, res) => {
+  res.send('Welcome to the Express server!');
+});
+
 // OpenAI Chatbot API
 app.post('/api/chat', async (req, res) => {
   const { prompt } = req.body;
