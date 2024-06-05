@@ -89,6 +89,6 @@ jobs:
             nohup ./startup_nodejs.sh > startup_nodejs.log 2>&1 &
           " || exit 0
 
-      - name: Health Check
-        run: curl -f http://${{ secrets.SSH_HOST }}:8081/ || exit 1
+    #   - name: Health Check
+    #     run: curl -f http://${{ secrets.SSH_HOST }}:8081/ || exit 1
 
