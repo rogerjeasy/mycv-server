@@ -1,0 +1,98 @@
+name: CI/CD Pipeline AWS EC2
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20.11.0'
+
+      - name: Check Node.js version
+        run: node -v
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+
+  deploy:
+    name: Deploy to AWS EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository code
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '20.11.0'
+
+      - name: Check Node.js version
+        run: node -v
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Write SSH key
+        run: |
+          echo "${{ secrets.SSH_KEY }}" > lisungui_server_key.pem
+          chmod 600 lisungui_server_key.pem
+
+      - name: Ensure target directory exists on EC2
+        run: ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p /home/${{ secrets.SSH_USER }}/nodejs"
+
+      - name: Create .env file on the remote server
+        run: |
+          ssh -o StrictHostKeyChecking=no -i ec2_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            echo ${{ secrets.ENV_VARIABLES }} | base64 --decode > /home/${{ secrets.SSH_USER }}/nodejs/.env
+          "
+
+      - name: Copy project files to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem -r * ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
+
+      - name: Copy package-lock.json to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem package-lock.json ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
+
+      - name: Copy server.js to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem server.js ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
+
+      - name: Copy package.json to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem package.json ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
+
+      - name: Copy startup_nodejs.sh to EC2
+        run: |
+          scp -o StrictHostKeyChecking=no -i lisungui_server_key.pem ./startup.sh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/home/${{ secrets.SSH_USER }}/nodejs/
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "chmod +x /home/${{ secrets.SSH_USER }}/nodejs/startup_nodejs.sh"
+
+      - name: Deploy to EC2 instance
+        run: |
+          ssh -o StrictHostKeyChecking=no -i lisungui_server_key.pem ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
+            cd /home/${{ secrets.SSH_USER }}/nodejs &&
+            npm install &&
+            nohup ./startup_nodejs.sh > startup_nodejs.log 2>&1 &
+          " || exit 0
+
+      - name: Health Check
+        run: curl -f http://${{ secrets.SSH_HOST }}:8081/ || exit 1
+
