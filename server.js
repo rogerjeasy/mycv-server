@@ -3,6 +3,9 @@ const OpenAI = require('openai');
 const dotenv = require('dotenv');
 const nodemailer = require('nodemailer');
 const cors = require('cors');
+const bodyParser = require('body-parser');
+const pdfParse = require('pdf-parse');
+const fs = require('fs');
 
 dotenv.config();
 
@@ -16,25 +19,36 @@ const openai = new OpenAI({
 
 app.use(cors());
 app.use(express.json());
+app.use(bodyParser.json());
 
 app.get('/', (req, res) => {
   res.send('Welcome to the Express server!');
 });
 
-// OpenAI Chatbot API
 app.post('/api/chat', async (req, res) => {
   const { prompt } = req.body;
 
   try {
-    const completion = await openai.chat.completions.create({
-      messages: [{ role: "system", content: "You are a helpful assistant." }, { role: "user", content: prompt }],
-      model: "gpt-3.5-turbo",
-    });
+      const pdfPath = './files/roger_updated_cv.pdf'; 
+      const pdfBuffer = fs.readFileSync(pdfPath); 
 
-    res.json({ response: completion.choices[0].message.content });
+      const data = await pdfParse(pdfBuffer);
+      const pdfText = data.text; 
+
+      const modifiedPrompt = `According to the following information: "${pdfText}". For any question not related to the information in the document, clearly say you do not know about it. ${prompt}`;
+
+      const completion = await openai.chat.completions.create({
+          messages: [
+              { role: "system", content: "You are a helpful assistant." },
+              { role: "user", content: modifiedPrompt }
+          ],
+          model: "gpt-3.5-turbo",
+      });
+
+      res.json({ response: completion.choices[0].message.content });
   } catch (error) {
-    console.error('Error fetching response from OpenAI:', error);
-    res.status(500).json({ error: error.message });
+      console.error('Error processing PDF or fetching response from OpenAI:', error);
+      res.status(500).json({ error: error.message });
   }
 });
 
