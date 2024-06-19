@@ -80,7 +80,7 @@ const transporter = nodemailer.createTransport({
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: 'rogerjeasy@gmail.com',
-      subject: `New message from ${firstName} ${lastName}`,
+      subject: `Website Form: New message from ${firstName} ${lastName}`,
       text: `
         Name: ${firstName} ${lastName}
         Phone: ${phone}
